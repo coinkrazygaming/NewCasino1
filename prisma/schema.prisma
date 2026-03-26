@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BANNED
+  SUSPENDED
+}
+
+enum TransactionType {
+  DEPOSIT
+  PURCHASE
+  BONUS
+  BET
+  WIN
+  WITHDRAW
+  ADJUSTMENT
+}
+
+enum Currency {
+  GC
+  SC
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum GameType {
+  SLOTS
+  BLACKJACK
+  ROULETTE
+  VIDEO_POKER
+  FISH
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  password      String
+  gcBalance     Float     @default(1000)
+  scBalance     Float     @default(10)
+  role          Role      @default(USER)
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  transactions  Transaction[]
+  bets          Bet[]
+  adminActions  AdminAction[]
+}
+
+model Transaction {
+  id          String            @id @default(cuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+  type        TransactionType
+  amount      Float
+  currency    Currency
+  status      TransactionStatus @default(PENDING)
+  details     String?
+  stripeId    String?
+  createdAt   DateTime          @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Game {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  type        GameType
+  description String?
+  thumbnail   String?
+  rtp         Float     @default(0.95)
+  minBet      Float     @default(1)
+  maxBet      Float     @default(1000)
+  status      String    @default("active")
+  config      Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  bets        Bet[]
+}
+
+model Bet {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  gameId      String
+  game        Game      @relation(fields: [gameId], references: [id])
+  betAmount   Float
+  currency    Currency
+  wonAmount   Float     @default(0)
+  result      Json?
+  won         Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([gameId])
+  @@index([createdAt])
+}
+
+model AdminAction {
+  id          String    @id @default(cuid())
+  adminId     String
+  admin       User      @relation(fields: [adminId], references: [id])
+  action      String
+  targetType  String?
+  targetId    String?
+  details     Json?
+  createdAt   DateTime  @default(now())
+  
+  @@index([adminId])
+  @@index([createdAt])
+}
+
+model GameSession {
+  id          String    @id @default(cuid())
+  userId      String
+  gameId      String
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  totalBet    Float     @default(0)
+  totalWon    Float     @default(0)
+}
