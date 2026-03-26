@@ -14,7 +14,7 @@ A fully functional sweepstakes social casino platform with dual virtual currenci
 - Profile settings
 
 ### Admin Panel
-- Admin login (coinkrazy26@gmail.com / admin123)
+- Admin login ()
 - User management (view, adjust balances, ban)
 - Transaction history viewing
 - Game management (enable/disable games)
@@ -70,8 +70,7 @@ npm run dev
 
 ### Admin Access
 - URL: `/admin`
-- Email: `coinkrazy26@gmail.com`
-- Password: `admin123`
+
 
 ## Project Structure
 
